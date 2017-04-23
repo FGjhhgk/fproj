@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
+using FProj.Api;
 
 namespace FProj.Web.Controllers
 {
@@ -24,6 +25,19 @@ namespace FProj.Web.Controllers
             file.SaveAs(localPath);
             var path = UnitOfWork.Instance.ImageRepository.AddPoster(new Api.ImageApi() { Path = uniqueName }, Id);
             return Json(new { Ok = true, Path = WebConfigurationManager.AppSettings["ImageFolder"] + path });
+        }
+
+        public ActionResult Create() => View(UnitOfWork.Instance.FilmRepository.Default());
+
+        [HttpPost]
+        public ActionResult Create(FilmApi model, HttpPostedFileBase file)
+        {
+            model.DateCreated = DateTime.Now;
+            var film = UnitOfWork.Instance.FilmRepository.Create(model);
+            if (file != null)
+                UploadPoster(film.Id, file);
+
+            return RedirectToAction("Details", new { Id = film.Id });
         }
     }
 }

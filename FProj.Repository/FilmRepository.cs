@@ -1,4 +1,5 @@
-﻿using FProj.Repository.Base;
+﻿using System;
+using FProj.Repository.Base;
 using FProj.Data;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,15 +13,25 @@ namespace FProj.Repository
         {
         }
 
+        public FilmApi Default()
+        {
+            return new FilmApi();
+        }
+
         public FilmApi Create(FilmApi model)
         {
+            model.User = DataToApi.UserToApi(_dbContext.User.FirstOrDefault());
             var filmData = ApiToData.FilmApiToData(model);
-
-            _dbContext.Film.Add(filmData);
-            _dbContext.SaveChanges();
-
-            UnitOfWork.Instance.ImageRepository.AddPictures(model.Pictures, filmData.Id);
-            UnitOfWork.Instance.ImageRepository.AddPoster(model.Poster, filmData.Id);
+            try
+            {
+                _dbContext.Film.Add(filmData);
+                _dbContext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
 
             return DataToApi.FilmToApi(filmData);
         }
